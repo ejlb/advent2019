@@ -1,6 +1,6 @@
 class Computer:
     def __init__(self, program):
-        self.memory = list(program)
+        self.memory = list(program[:])
         self.ip = 0
 
         self.opcodes = {
@@ -31,10 +31,10 @@ class Computer:
             if opcode == 99:
                 break
 
-            opcode_config = self.opcodes[opcode]
-
             if opcode not in self.opcodes.keys():
                 raise ValueError("unknown opcode {}".format(opcode))
+
+            opcode_config = self.opcodes[opcode]
 
             args = self.read_range(self.ip + 1, self.ip + opcode_config["size"])
 
@@ -42,7 +42,6 @@ class Computer:
             opcode_config["body"](*args)
 
             self.ip += opcode_config["size"]
-
 
 if __name__ == "__main__":
     program_rom = tuple(map(int, open("002.txt").read().split(",")))
