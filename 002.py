@@ -1,32 +1,47 @@
-KEEP = list(map(int, open("002-001.txt").read().split(",")))
+class Computer:
+    def __init__(self, program):
+        self.memory = program[:]
+        self.ip = 0
 
+    def read(self, address):
+        return self.memory[address]
 
-for n in range(0, 100):
+    def write(self, address, value):
+        self.memory[address] = value
 
-    for v in range(0, 100):
-        program = KEEP[:]
-        program[1] = n
-        program[2] = v
-
-        for statement_i in range(0, len(program), 4):
-
-            statement = program[statement_i : statement_i + 4]
+    def run(self):
+        while True:
+            statement = self.memory[self.ip : self.ip + 4]
             opcode = statement[0]
 
             if opcode == 99:
                 break
 
-            value_1 = program[statement[1]]
-            value_2 = program[statement[2]]
+            value_1 = self.read(statement[1])
+            value_2 = self.read(statement[2])
             position = statement[3]
 
             if opcode == 1:
-                program[position] = value_1 + value_2
+                self.write(position, value_1 + value_2)
             elif opcode == 2:
-                program[position] = value_1 * value_2
+                self.write(position, value_1 * value_2)
             else:
                 raise Exception("Unknown op code")
 
-        if program[0] == 19690720:
-            print("halt with {}".format(program[0]))
-            print(n, v, 100 * n + v)
+            self.ip += 4
+
+
+if __name__ == "__main__":
+    program_rom = list(map(int, open("002.txt").read().split(",")))
+
+    for noun in range(0, 100):
+        for verb in range(0, 100):
+
+            computer = Computer(program_rom)
+            computer.write(1, noun)
+            computer.write(2, verb)
+            computer.run()
+            value = computer.read(0)
+
+            if value == 19690720:
+                print(noun, verb, 100 * noun + verb)
