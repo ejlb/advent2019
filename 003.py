@@ -1,11 +1,9 @@
 import numpy as np
-import matplotlib.pylab as plt
-
-from scipy.spatial import distance
 
 
-def draw(origin, line, grid):
+def draw(origin, line):
     current = origin[:]
+    grid = np.zeros((20000, 20000))
     count = 0
 
     for move in line:
@@ -32,7 +30,6 @@ def draw(origin, line, grid):
 
             if grid[current[0], current[1]] == 0:
                 grid[current[0], current[1]] = count
-                print("setting {} to {}".format(current, count))
 
     return grid
 
@@ -43,15 +40,19 @@ with open("003.txt", "r") as f:
 
 origin = [5000, 5000]
 
-grid_a = draw(origin, line_a, np.zeros((50000, 50000)).astype(int))
-grid_b = draw(origin, line_b, np.zeros((50000, 50000)).astype(int))
+print("grids")
+grid_a = draw(origin, line_a)
+grid_b = draw(origin, line_b)
+print("sum")
 grid = grid_a + grid_b
 
+print("intersec")
 intersections = grid[np.logical_and(grid > 0, np.logical_and(grid_a != 0, grid_b != 0))]
-print("small", np.sort(intersections).astype(int)[0])
+print("smallest", np.sort(intersections).astype(int)[0])
 
 
 """
+# from scipy.spatial import distance
 distances = []
 for i in intersections:
     if np.all(i == origin[0]):
