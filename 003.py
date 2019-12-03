@@ -1,29 +1,25 @@
 import numpy as np
+import scipy.sparse
+
+directions = {"L": (1, -1), "R": (1, 1), "D": (0, -1), "U": (0, 1)}
 
 
 def draw(origin, line):
     current = origin[:]
-    grid = np.zeros((20000, 20000))
+    grid = scipy.sparse.lil_matrix((20000, 20000), dtype=np.int32)
     count = 0
 
     for move in line:
         direction = move[0]
         distance = int(move[1:])
 
+        idx, inc = directions[direction]
+
         while distance > 0:
+
             distance -= 1
             count += 1
-
-            if direction == "L":
-                current[1] -= 1
-            elif direction == "R":
-                current[1] += 1
-            elif direction == "U":
-                current[0] += 1
-            elif direction == "D":
-                current[0] -= 1
-            else:
-                raise ValueError("invalid direction {}".format(move))
+            current[idx] += inc
 
             if min(current) < 0 or max(current) > grid.shape[0]:
                 raise ValueError("gone off the board: {}".format(current))
@@ -43,12 +39,14 @@ origin = [5000, 5000]
 print("grids")
 grid_a = draw(origin, line_a)
 grid_b = draw(origin, line_b)
-print("sum")
-grid = grid_a + grid_b
 
-print("intersec")
-intersections = grid[np.logical_and(grid > 0, np.logical_and(grid_a != 0, grid_b != 0))]
-print("smallest", np.sort(intersections).astype(int)[0])
+print("sums")
+grid = grid_a + grid_b
+grid_mask = (grid_a > 0).astype(int) + (grid_b > 0).astype(int)
+
+print("intersection")
+intersections = grid[grid_mask == 2]
+print("smallest", np.min(intersections))
 
 
 """
