@@ -46,7 +46,7 @@ grid_mask = (grid_a > 0).astype(int) + (grid_b > 0).astype(int)
 
 print("intersection")
 intersections = grid[grid_mask == 2]
-print("smallest", np.min(intersections))
+print(np.min(intersections))
 
 
 """
