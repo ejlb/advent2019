@@ -14,39 +14,39 @@ class Computer:
             8: {"name": "equal", "size": 4, "body": self.opcode_equal},
         }
 
-    def opcode_add(self, a, b, p, modes=None):
+    def opcode_add(self, a, b, out_addr, modes=None):
         a, b = self.dereference_addresses([a,b], modes[:2])
-        self.write(p, a + b)
+        self.write(out_addr, a + b)
 
-    def opcode_mul(self, a, b, p, modes=None):
+    def opcode_mul(self, a, b, out_addr, modes=None):
         a, b = self.dereference_addresses([a,b], modes[:2])
-        self.write(p, a * b)
+        self.write(out_addr, a * b)
 
-    def opcode_print(self, p, modes=None):
-        p = self.dereference_addresses([p], modes)
-        print(p[0])
+    def opcode_print(self, message, modes=None):
+        message = self.dereference_addresses([message], modes)
+        print(message[0])
 
-    def opcode_input(self, p, modes=None):
+    def opcode_input(self, out_addr, modes=None):
         value = int(input('input please: '))
-        self.write(p, value)
+        self.write(out_addr, value)
 
-    def opcode_jump_true(self, a, p, modes=None):
-        a, p = self.dereference_addresses([a,p], modes)
-        if a:
-            self.ip = p
+    def opcode_jump_true(self, cond, addr, modes=None):
+        cond, addr = self.dereference_addresses([cond,addr], modes)
+        if cond:
+            self.ip = addr
 
-    def opcode_jump_false(self, a, p, modes=None):
-        a, p = self.dereference_addresses([a,p], modes)
-        if not a:
-            self.ip = p
+    def opcode_jump_false(self, cond, addr, modes=None):
+        cond, addr = self.dereference_addresses([cond,addr], modes)
+        if not cond:
+            self.ip = addr
 
-    def opcode_less(self, a, b, p, modes=None):
+    def opcode_less(self, a, b, out_addr, modes=None):
         a, b = self.dereference_addresses([a,b], modes[:2])
-        self.write(p, int(a < b))
+        self.write(out_addr, int(a < b))
 
-    def opcode_equal(self, a, b, p, modes=None):
+    def opcode_equal(self, a, b, out_addr, modes=None):
         a, b = self.dereference_addresses([a,b], modes[:2])
-        self.write(p, int(a == b))
+        self.write(out_addr, int(a == b))
 
     def read(self, address):
         return self.memory[address]
@@ -57,15 +57,14 @@ class Computer:
     def write(self, address, value):
         self.memory[address] = value
 
-    def dereference_addresses(self, args, param_modes):
-        while(len(args) > len(param_modes)):
+    def dereference_addresses(self, addresses, param_modes):
+        while(len(addresses) > len(param_modes)):
             param_modes.append(0) # zero-pad
 
-        for i in range(len(args)):
-            if param_modes[i] == 0:
-                args[i] = self.read(args[i])
-
-        return args
+        return [
+            self.read(addresses[i]) if param_modes[i] == 0 else addresses[i]
+            for i in range(len(addresses))
+        ]
 
     def run(self):
         while True:
