@@ -8,8 +8,8 @@ class Computer:
             2: {"name": "mul", "size": 4, "body": self.opcode_mul},
             3: {"name": "input", "size": 2, "body": self.opcode_input},
             4: {"name": "print", "size": 2, "body": self.opcode_print},
-            5: {"name": "jump-true", "size": 3, "body": self.opcode_jump_true},
-            6: {"name": "jump-false", "size": 3, "body": self.opcode_jump_false},
+            5: {"name": "je", "size": 3, "body": self.opcode_jump_true},
+            6: {"name": "jne", "size": 3, "body": self.opcode_jump_false},
             7: {"name": "less", "size": 4, "body": self.opcode_less},
             8: {"name": "equal", "size": 4, "body": self.opcode_equal},
         }
@@ -42,17 +42,11 @@ class Computer:
 
     def opcode_less(self, a, b, p, modes=None):
         a, b = self.dereference_addresses([a,b], modes[:2])
-        if a < b:
-            self.write(p, 1)
-        else:
-            self.write(p, 0)
+        self.write(p, int(a < b))
 
     def opcode_equal(self, a, b, p, modes=None):
         a, b = self.dereference_addresses([a,b], modes[:2])
-        if a == b:
-            self.write(p, 1)
-        else:
-            self.write(p, 0)
+        self.write(p, int(a == b))
 
     def read(self, address):
         return self.memory[address]
@@ -65,7 +59,7 @@ class Computer:
 
     def dereference_addresses(self, args, param_modes):
         while(len(args) > len(param_modes)):
-            param_modes.append(0)
+            param_modes.append(0) # zero-pad
 
         for i in range(len(args)):
             if param_modes[i] == 0:
@@ -100,6 +94,5 @@ class Computer:
 
 if __name__ == "__main__":
     program_rom = tuple(map(int, open("005.txt").read().split(",")))
-
     computer = Computer(program_rom)
     computer.run()
