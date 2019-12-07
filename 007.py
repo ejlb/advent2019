@@ -57,20 +57,15 @@ class Computer:
     def read(self, address):
         return self.memory[address]
 
-    def read_range(self, start, stop):
-        return self.memory[start:stop]
-
     def write(self, address, value):
         self.memory[address] = value
 
     def dereference_addresses(self, addresses, param_modes):
-        while(len(addresses) > len(param_modes)):
-            param_modes.append(0) # zero-pad
+        it = itertools.zip_longest(addresses, param_modes, fillvalue = 0)
+        return [self.read(a) if not p else a for a, p in it]
 
-        return [
-            self.read(addresses[i]) if param_modes[i] == 0 else addresses[i]
-            for i in range(len(addresses))
-        ]
+    def send(self, arg):
+        self.run.send(arg)
 
     def _run(self):
         while True:
@@ -85,15 +80,20 @@ class Computer:
                 raise ValueError("unknown opcode {}".format(opcode))
 
             opcode_config = self.opcodes[opcode]
-            param_modes = map(int, instruction[:-2])[::-1]
-            args = self.read_range(self.ip + 1, self.ip + opcode_config["size"])
+            param_modes = [int(i) for i in instruction[:-2][::-1]]
+
+            args = [
+                self.read(self.ip + 1 + offset)
+                for offset in range(opcode_config["size"]-1)
+            ]
 
             old_ip = self.ip
 
-            # execute opcode with arguments
+            # wait for reads
             if opcode == 3:
                 self.input = yield
 
+            # execute opcode with arguments
             opcode_config["body"](*args, modes=param_modes)
 
             # OMG WHY THIS KILLED ME
@@ -104,18 +104,15 @@ class Computer:
             if self.ip == old_ip:
                 self.ip += opcode_config["size"]
 
-    def send(self, arg):
-        self.run.send(arg)
-
 if __name__ == "__main__":
     program_rom = tuple(map(int, open("007.txt").read().split(",")))
     results = []
 
     for code in itertools.permutations(range(5, 10)):
-        amps = [Computer(program_rom) for i in range(5)]
-
         # initial set up with config codes
+        amps = [Computer(program_rom) for i in range(5)]
         [amps[i].send(code[i]) for i in range(5)]
+
         output = 0
 
         try:
@@ -126,5 +123,4 @@ if __name__ == "__main__":
         except:
             results.append([code, output])
 
-    for i in sorted(results, key=lambda x: x[1]):
-       print(i)
+    print(sorted(results, key=lambda x: -x[1])[0])
